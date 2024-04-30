@@ -9,7 +9,7 @@ const PORT = process.env.PORT;
 
 const app = express();
 
-const client = redis.createClient();
+export const client = redis.createClient();
 
 client.connect();
 
