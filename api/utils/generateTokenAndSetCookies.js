@@ -22,6 +22,6 @@ export const generateTokenAndSetCookies = async (res, user) => {
       })
       .json({ message: "You signin successfully", user, accesToken });
   } catch (error) {
-    console.log(error);
+    console.log(error.message);
   }
 };

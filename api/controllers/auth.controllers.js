@@ -5,6 +5,7 @@ import User from "../models/user.model.js";
 import { client } from "../server.js";
 import { sendVerificationEmail } from "../utils/sendEmail.js";
 import { generateTokenAndSetCookies } from "../utils/generateTokenAndSetCookies.js";
+import { renewAccessToken } from "../utils/renewAccessToken.js";
 
 export const signUp = async (req, res) => {
   try {
@@ -97,6 +98,22 @@ export const verifyEmail = async (req, res) => {
     user.isVerify = true;
     await Promise.all([user.save(), client.setEx(emailToken, 1, "value")]);
     res.status(201).json({ message: "Your email was verify" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", errors: error.message });
+  }
+};
+
+export const refresh = (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+      return res.status(403).json({ errors: "You are not authentificated" });
+    }
+    const { id } = req.body.id;
+    renewAccessToken(res, id);
+    res.status(201);
   } catch (error) {
     res
       .status(500)
