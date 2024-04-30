@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import redis from "redis";
 import { connectToMongoDB } from "./db/config.js";
 import authRouter from "./routes/auth.router.js";
+import cookieParser from "cookie-parser";
 dotenv.config();
 
 const PORT = process.env.PORT;
@@ -19,6 +20,7 @@ client.on("connect", () => {
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+app.use(cookieParser());
 
 app.use("/api/auth", authRouter);
 

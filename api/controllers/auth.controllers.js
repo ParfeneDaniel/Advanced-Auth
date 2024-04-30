@@ -68,8 +68,19 @@ export const signIn = async (req, res) => {
   }
 };
 
-export const signOut = (req, res) => {
-  res.status(201).json({ message: "Success" });
+export const signOut = async (req, res) => {
+  try {
+    const refreshToken = req.cookies.refreshToken;
+    await client.setEx(refreshToken, 1, "value");
+    res
+      .clearCookie("refreshToken")
+      .status(201)
+      .json({ message: "You signout successfully" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", errors: error.message });
+  }
 };
 
 export const verifyEmail = async (req, res) => {
