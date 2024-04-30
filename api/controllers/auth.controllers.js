@@ -4,6 +4,7 @@ import { validationResult } from "express-validator";
 import User from "../models/user.model.js";
 import { client } from "../server.js";
 import { sendVerificationEmail } from "../utils/sendEmail.js";
+import { generateTokenAndSetCookies } from "../utils/generateTokenAndSetCookies.js";
 
 export const signUp = async (req, res) => {
   try {
@@ -31,7 +32,7 @@ export const signUp = async (req, res) => {
     });
     await Promise.all([
       newUser.save(),
-      client.setEx(emailToken, 2 * 60, "value"),
+      client.setEx(emailToken, 3 * 60, "value"),
       sendVerificationEmail(newUser),
     ]);
     res.status(201).json({ newUser });
@@ -42,8 +43,29 @@ export const signUp = async (req, res) => {
   }
 };
 
-export const signIn = (req, res) => {
-  res.status(201).json({ message: "Success" });
+export const signIn = async (req, res) => {
+  try {
+    const { username, password } = req.body;
+    const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(403).json({ errors: "User or password not found" });
+    }
+    const validPassword = bcrypt.compareSync(password, user.password);
+    if (!validPassword) {
+      return res.status(403).json({ errors: "User or password not found" });
+    }
+    const isVerified = user.isVerify;
+    if (!isVerified) {
+      return res.status(403).json({ errors: "Account is not verified" });
+    }
+    const { hashedPassword, ...rest } = user._doc;
+    generateTokenAndSetCookies(res, rest);
+    res.status(201);
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", errors: error.message });
+  }
 };
 
 export const signOut = (req, res) => {
