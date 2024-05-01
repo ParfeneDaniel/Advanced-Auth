@@ -30,6 +30,7 @@ export const signUp = async (req, res) => {
       password: hashedPassword,
       emailToken,
       isVerify: false,
+      previousPasswords: hashedPassword,
     });
     await Promise.all([
       newUser.save(),
@@ -59,7 +60,7 @@ export const signIn = async (req, res) => {
     if (!isVerified) {
       return res.status(403).json({ errors: "Account is not verified" });
     }
-    const { hashedPassword, ...rest } = user._doc;
+    const { password: hashedPassword, previousPasswords, ...rest } = user._doc;
     generateTokenAndSetCookies(res, rest);
     res.status(201);
   } catch (error) {
