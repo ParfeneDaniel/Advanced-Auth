@@ -125,6 +125,20 @@ export const refresh = async (req, res) => {
   }
 };
 
+export const forgotPassword = (req, res) => {
+  try {
+    res
+      .status(201)
+      .json({
+        message: "You want to reset your password because you forgot it",
+      });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", errors: error.message });
+  }
+};
+
 export const deleteAccounts = async (req, res) => {
   try {
     const unverifiedAccounts = await User.find({ isVerify: false });

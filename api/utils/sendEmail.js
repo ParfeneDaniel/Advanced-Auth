@@ -29,3 +29,5 @@ export const sendVerificationEmail = async (user) => {
     console.log(error.message);
   }
 };
+
+
