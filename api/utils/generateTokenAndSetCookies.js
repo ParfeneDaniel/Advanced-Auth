@@ -7,15 +7,19 @@ const REFRESH_TOKEN_SECRET = process.env.REFRESH_TOKEN_SECRET;
 export const generateTokenAndSetCookies = async (res, user) => {
   try {
     const accesToken = jwt.sign({ id: user._id }, ACCESS_TOKEN_SECRET, {
+      //expiresIn: "30s",
       expiresIn: "10m",
     });
     const refreshToken = jwt.sign({ id: user._id }, REFRESH_TOKEN_SECRET, {
+      //expiresIn: "2m",
       expiresIn: "15d",
     });
     await client.setEx(refreshToken, 15 * 24 * 60 * 60, "value");
+    //await client.setEx(refreshToken, 2 * 60, "value");
     res
       .cookie("refreshToken", refreshToken, {
         maxAge: 15 * 24 * 60 * 60 * 1000,
+        //maxAge: 2 * 60 * 1000,
         httpOnly: true,
         sameSite: "strict",
         secure: true,

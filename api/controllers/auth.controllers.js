@@ -105,14 +105,17 @@ export const verifyEmail = async (req, res) => {
   }
 };
 
-export const refresh = (req, res) => {
+export const refresh = async (req, res) => {
   try {
     const refreshToken = req.cookies.refreshToken;
     if (!refreshToken) {
       return res.status(403).json({ errors: "You are not authentificated" });
     }
-    const { id } = req.body.id;
-    renewAccessToken(res, id);
+    const isValidToken = await client.get(refreshToken);
+    if (!isValidToken) {
+      return res.status(403).json({ errors: "Token is not valid" });
+    }
+    renewAccessToken(res, refreshToken);
     res.status(201);
   } catch (error) {
     res
@@ -133,6 +136,17 @@ export const deleteAccounts = async (req, res) => {
     });
     await Promise.all(deleteAccounts);
     res.status(201).json({ message: "Unverified accounts were deleted" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", errors: error.message });
+  }
+};
+
+export const test = (req, res) => {
+  try {
+    const id = req.user.id;
+    res.status(201).json({ message: "Protected route", id });
   } catch (error) {
     res
       .status(500)
