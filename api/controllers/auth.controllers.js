@@ -3,7 +3,10 @@ import crypto from "crypto";
 import { validationResult } from "express-validator";
 import User from "../models/user.model.js";
 import { client } from "../server.js";
-import { sendVerificationEmail } from "../utils/sendEmail.js";
+import {
+  sendSecurityEmail,
+  sendVerificationEmail,
+} from "../utils/sendEmail.js";
 import { generateTokenAndSetCookies } from "../utils/generateTokenAndSetCookies.js";
 import { renewAccessToken } from "../utils/renewAccessToken.js";
 
@@ -125,13 +128,18 @@ export const refresh = async (req, res) => {
   }
 };
 
-export const forgotPassword = (req, res) => {
+export const forgotPassword = async (req, res) => {
   try {
-    res
-      .status(201)
-      .json({
-        message: "You want to reset your password because you forgot it",
-      });
+    const { username } = req.body;
+    const user = await User.findOne({ username });
+    const secureToken = crypto.randomBytes(64).toString("hex");
+    await Promise.all([
+      sendSecurityEmail(user, secureToken),
+      client.setEx(secureToken, 3 * 60, "value"),
+    ]);
+    res.status(201).json({
+      message: "Now you can reset your password",
+    });
   } catch (error) {
     res
       .status(500)
