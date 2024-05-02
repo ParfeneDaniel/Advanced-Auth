@@ -40,7 +40,7 @@ export const signUp = async (req, res) => {
       client.setEx(emailToken, 3 * 60, "value"),
       sendVerificationEmail(newUser),
     ]);
-    res.status(201).json({ newUser });
+    res.status(201).json({ message: "Your account was created" });
   } catch (error) {
     res
       .status(500)
