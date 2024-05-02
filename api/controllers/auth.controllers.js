@@ -147,6 +147,35 @@ export const forgotPassword = async (req, res) => {
   }
 };
 
+export const reset = async (req, res) => {
+  try {
+    const { username, secureToken, newPassword } = req.body;
+    const isTokenValid = await client.get(secureToken);
+    if (!isTokenValid) {
+      return res.status(403).json({ errors: "Your secure token is not valid" });
+    }
+    const user = await User.findOne({ username });
+    const previousPasswords = user.previousPasswords;
+    for (const password of previousPasswords) {
+      const isAlreadyUsed = bcrypt.compareSync(newPassword, password);
+      if (isAlreadyUsed) {
+        return res
+          .status(403)
+          .json({ errors: "This password was already used" });
+      }
+    }
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+    user.previousPasswords.push(hashedPassword);
+    user.password = hashedPassword;
+    await Promise.all([user.save(), client.setEx(secureToken, 1, "value")]);
+    res.status(201).json({ message: "Your password was reset" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", errors: error.message });
+  }
+};
+
 export const deleteAccounts = async (req, res) => {
   try {
     const unverifiedAccounts = await User.find({ isVerify: false });
