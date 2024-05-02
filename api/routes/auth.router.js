@@ -13,6 +13,7 @@ import {
 } from "../controllers/auth.controllers.js";
 import { userValidator } from "../models/checkUser.model.js";
 import { authorization } from "../middleware/authorization.js";
+import { passwordValidator } from "../models/checkPassword.model.js";
 
 const router = express.Router();
 
@@ -22,8 +23,13 @@ router.post("/signout", signOut);
 router.post("/verifyEmail/:emailToken", verifyEmail);
 router.post("/refresh", refresh);
 router.post("/forgotPassword", forgotPassword);
-router.post("/reset", reset);
-router.post("/changePassword", authorization, changePassword);
+router.post("/reset", passwordValidator, reset);
+router.post(
+  "/changePassword",
+  authorization,
+  passwordValidator,
+  changePassword
+);
 router.delete("/deleteAccounts", deleteAccounts);
 router.get("/test", authorization, test);
 

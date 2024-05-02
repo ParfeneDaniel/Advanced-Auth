@@ -149,6 +149,10 @@ export const forgotPassword = async (req, res) => {
 
 export const reset = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
     const { username, secureToken, newPassword } = req.body;
     const isTokenValid = await client.get(secureToken);
     if (!isTokenValid) {
@@ -178,6 +182,10 @@ export const reset = async (req, res) => {
 
 export const changePassword = async (req, res) => {
   try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(422).json({ errors: errors.array() });
+    }
     const { password, newPassword } = req.body;
     const id = req.user.id;
     const user = await User.findOne({ _id: id });
