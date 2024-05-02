@@ -132,6 +132,9 @@ export const forgotPassword = async (req, res) => {
   try {
     const { username } = req.body;
     const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ errors: "User does not exist" });
+    }
     const secureToken = crypto.randomBytes(64).toString("hex");
     await Promise.all([
       sendSecurityEmail(user, secureToken),
@@ -159,6 +162,9 @@ export const reset = async (req, res) => {
       return res.status(403).json({ errors: "Your secure token is not valid" });
     }
     const user = await User.findOne({ username });
+    if (!user) {
+      return res.status(404).json({ errors: "User does not exist" });
+    }
     const previousPasswords = user.previousPasswords;
     for (const password of previousPasswords) {
       const isAlreadyUsed = bcrypt.compareSync(newPassword, password);
