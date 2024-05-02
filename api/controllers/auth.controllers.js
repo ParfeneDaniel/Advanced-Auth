@@ -176,6 +176,36 @@ export const reset = async (req, res) => {
   }
 };
 
+export const changePassword = async (req, res) => {
+  try {
+    const { password, newPassword } = req.body;
+    const id = req.user.id;
+    const user = await User.findOne({ _id: id });
+    const validPassword = bcrypt.compareSync(password, user.password);
+    if (!validPassword) {
+      return res.status(403).json({ errors: "Password is not correct" });
+    }
+    const previousPasswords = user.previousPasswords;
+    for (const password of previousPasswords) {
+      const isAlreadyUsed = bcrypt.compareSync(newPassword, password);
+      if (isAlreadyUsed) {
+        return res
+          .status(403)
+          .json({ errors: "This password was already used" });
+      }
+    }
+    const hashedPassword = bcrypt.hashSync(newPassword, 10);
+    user.previousPasswords.push(hashedPassword);
+    user.password = hashedPassword;
+    await user.save();
+    res.status(201).json({ message: "Your password has been changed" });
+  } catch (error) {
+    res
+      .status(500)
+      .json({ message: "Internal Server Error", errors: error.message });
+  }
+};
+
 export const deleteAccounts = async (req, res) => {
   try {
     const unverifiedAccounts = await User.find({ isVerify: false });
